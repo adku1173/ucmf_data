@@ -49,23 +49,29 @@ def frequencies(parameters):
     return np.array([snap_frequency_to_fft_bin(f, parameters.fs, parameters.block_size)[1] for f in exact])
 
 
-def sensing_matrix(parameters, data):
-    """Return the nominal CMF model A (F, M_eff, N) at frequencies(parameters).
+def nominal_transfer(parameters):
+    """Return the nominal true-level H (F, M, N) at frequencies(parameters).
 
-    Columns hold the true-level transfer from grid points to nominal_mics,
-    referenced to the nominal ref, in the vectorization convention of y for
-    r_diag: column n is the vectorized unit-power CSM of grid point n.
-    Independent of the sampled scene.
+    Column n is the transfer from grid point n to nominal_mics, referenced to the
+    nominal ref. Independent of the sampled scene.
     """
     grid = parameters.focus_grid
     rm = np.linalg.norm(grid[:, :, None] - parameters.nominal_mics[:, None, :], axis=0)
     r0 = np.linalg.norm(grid - parameters.ref[:, None], axis=0)
-    result = []
-    for frequency in frequencies(parameters):
-        h = calcTransfer(r0, rm, np.array(2 * np.pi * frequency / parameters.c))
-        outer = h[:, :, None] * h.conj()[:, None, :]
-        result.append(vectorize_csm(outer, parameters.r_diag).T)
-    return np.array(result)
+    wavenumbers = 2 * np.pi * frequencies(parameters) / parameters.c
+    return np.array([calcTransfer(r0, rm, np.array(k)).T for k in wavenumbers])
+
+
+def sensing_matrix(parameters, data):
+    """Return the nominal CMF model A (F, M_eff, N) at frequencies(parameters).
+
+    Column n is the vectorized unit-power CSM h_n h_n^H of column n of
+    nominal_transfer, in the vectorization convention of y for r_diag.
+    Independent of the sampled scene.
+    """
+    h = nominal_transfer(parameters)
+    outer = np.einsum('fmn,fkn->fnmk', h, h.conj())  # (F, N, M, M)
+    return np.swapaxes(vectorize_csm(outer, parameters.r_diag), -1, -2)
 
 
 def y(parameters, data):
@@ -151,7 +157,8 @@ def cleansc(parameters, data):
 
     Use nominal_mics, grid, ref and sound speed from the current ParameterSet.
     Synthetic frequencies are exact; MIRACLE frequencies use the measured FFT
-    bins. r_diag comes from the ParameterSet; other CLEAN-SC settings use Acoular defaults.
+    bins. CLEAN-SC always keeps the CSM diagonal (r_diag=False), independent of the
+    ParameterSet; other CLEAN-SC settings use Acoular defaults.
     """
     values = frequencies(parameters)
     order = np.argsort(values)
@@ -162,5 +169,5 @@ def cleansc(parameters, data):
         env=ac.Environment(c=parameters.c),
         ref=parameters.ref,
     )
-    beamformer = ac.BeamformerCleansc(freq_data=spectra, steer=steer, r_diag=parameters.r_diag, cached=False)
+    beamformer = ac.BeamformerCleansc(freq_data=spectra, steer=steer, r_diag=False, cached=False)
     return np.asarray(beamformer.result[:])[np.argsort(order)]

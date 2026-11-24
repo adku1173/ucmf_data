@@ -19,7 +19,7 @@ resolution-markers = [
 [[package]]
 name = "acoular"
 version = "26.8"
-source = { git = "https://github.com/adku1173/acoular?rev=4c3023ea8f15486fd575cc2f1883a384a234349b#4c3023ea8f15486fd575cc2f1883a384a234349b" }
+source = { git = "https://github.com/acoular/acoular.git?branch=cmf-problem-assembly#9568eb27e023a374af3d832ef311c5f66c7c3bbf" }
 dependencies = [
     { name = "numba" },
     { name = "numpy" },
@@ -3076,7 +3076,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "acoular", git = "https://github.com/adku1173/acoular?rev=4c3023ea8f15486fd575cc2f1883a384a234349b" },
+    { name = "acoular", git = "https://github.com/acoular/acoular.git?branch=cmf-problem-assembly" },
     { name = "acoupipe", git = "https://github.com/adku1173/acoupipe?branch=analysis%2Fray-data" },
     { name = "h5py" },
     { name = "irdl" },

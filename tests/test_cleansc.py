@@ -24,13 +24,13 @@ def reference(parameters, matrix, frequency):
         env=ac.Environment(c=parameters.c),
         ref=parameters.ref,
     )
-    beamformer = ac.BeamformerCleansc(freq_data=spectra, steer=steer, r_diag=parameters.r_diag, cached=False)
+    beamformer = ac.BeamformerCleansc(freq_data=spectra, steer=steer, r_diag=False, cached=False)
     return np.asarray(beamformer.result[:])[0]
 
 
 @pytest.mark.parametrize('he', [4.0, [8.0, 4.0], np.array([8.0, 4.0, 8.0])])
 @pytest.mark.parametrize('r_diag', [False, True])
-def test_all_frequencies_match_acoular_in_original_order(he, r_diag):
+def test_all_frequencies_match_acoular_without_r_diag_in_original_order(he, r_diag):
     parameters = Parameters(he=he, r_diag=r_diag)
     result = sample(Config(parameters=parameters), ['cleansc', 'csm'])
     frequencies = np.atleast_1d(he) * parameters.c / parameters.aperture

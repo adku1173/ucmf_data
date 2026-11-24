@@ -26,8 +26,8 @@ dev = ["pytest", "ruff"]
 
 [tool.uv.sources]
 acoupipe = { git = "https://github.com/adku1173/acoupipe", branch = "analysis/ray-data" }
-# dictionary_reduction branch, pinned for reproducible data (same revision as FA2026_code).
-acoular = { git = "https://github.com/adku1173/acoular", rev = "4c3023ea8f15486fd575cc2f1883a384a234349b" }
+# Same Acoular as ucmf (acoular.solvers interface, not yet released on PyPI).
+acoular = { git = "https://github.com/acoular/acoular.git", branch = "cmf-problem-assembly" }
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/ucmf_data"]

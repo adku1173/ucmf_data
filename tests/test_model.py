@@ -3,7 +3,7 @@
 from acoupipe.datasets import Dataset
 
 from ucmf_data import Config, MiracleA1Parameters, Parameters
-from ucmf_data.features import analytic_transfer, frequencies, sensing_matrix, source_strength, x
+from ucmf_data.features import analytic_transfer, frequencies, nominal_transfer, sensing_matrix, source_strength, x
 from ucmf_data.vectorization import vectorize_csm
 
 import numpy as np
@@ -28,6 +28,12 @@ def test_a_maps_grid_powers_to_the_vectorized_ensemble_csm(r_diag):
     for h, strength, a, column in zip(data['transfer'], data['source_strength'], matrix, target, strict=True):
         expected = vectorize_csm((h * strength) @ h.conj().T, r_diag)
         np.testing.assert_allclose(a @ column, expected, rtol=1e-9, atol=1e-12 * np.abs(expected).max())
+
+
+def test_nominal_transfer_is_the_analytic_transfer_of_the_focus_grid():
+    parameters = Parameters(he=HE)
+    parameters.source_locations = parameters.focus_grid
+    np.testing.assert_allclose(nominal_transfer(parameters), analytic_transfer(parameters)[0], rtol=1e-12)
 
 
 @pytest.mark.parametrize('r_diag', [False, True])

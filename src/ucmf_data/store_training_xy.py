@@ -7,10 +7,11 @@ Every frequency is simulated on its own and written to ``OUT/he_<He>/``: the spl
 training/validation hold the lean features y and x as one uncompressed float32 .npy
 file each, in the directories ``<split>_y/`` (N, M) and ``<split>_x/`` (N, N_grid), so
 one frequency loads with a single sequential read. Rows of y and x correspond; their
-order is arbitrary. The test split adds cleansc and is written as HDF5. ``meta.npz``
-holds the sensing matrix A and the settings of the frequency; it is written last
-and marks the frequency as complete, so an interrupted run continues with the first
-incomplete frequency.
+order is arbitrary. The test split adds cleansc and is written as HDF5. y and A use
+the full vectorization (r_diag=False); r_diag=True selects rows of both. ``meta.npz``
+holds A, the nominal transfer H for the operators built from H, and the settings of
+the frequency; it is written last and marks the frequency as complete, so an
+interrupted run continues with the first incomplete frequency.
 Generation is parallelized with Ray across ``GEN_WORKERS`` workers.
 """
 
@@ -23,13 +24,13 @@ for _var in ('NUMBA_NUM_THREADS', 'OMP_NUM_THREADS', 'OPENBLAS_NUM_THREADS', 'MK
 from acoupipe.datasets import Dataset
 
 from ucmf_data import Config, Parameters
-from ucmf_data.features import frequencies, sensing_matrix
+from ucmf_data.features import frequencies, nominal_transfer, sensing_matrix
 
 import numpy as np
 import ray
 
 OUT = '/mnt/data/kujawski/promotion/synthetic'
-TRAIN_SIZE = 256  # 1_000_000 for the full dataset
+TRAIN_SIZE = 1_000_000  # 1_000_000 for the full dataset
 VAL_SIZE = 10_000
 TEST_SIZE = 10_000
 TASKS = os.cpu_count()
@@ -75,7 +76,9 @@ def write_frequency(he, path):
     dataset.save_h5(['x', 'y', 'cleansc'], size=TEST_SIZE, split='test', name=os.path.join(path, 'test.h5'))
     np.savez(
         os.path.join(path, 'meta.npz'),
-        A=sensing_matrix(parameters, {})[0].astype(np.float32),  # (M, N_grid)
+        A=sensing_matrix(parameters, {})[0].astype(np.float32),  # (M_eff, N_grid)
+        H=nominal_transfer(parameters)[0].astype(np.complex64),  # (M, N_grid)
+        r_diag=parameters.r_diag,
         he=np.float32(he),
         frequency=np.float32(frequencies(parameters)[0]),
         dataset_seed=DATASET_SEED,
