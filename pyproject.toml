@@ -7,7 +7,7 @@ name = "ucmf_data"
 version = "0.1.0"
 description = "acoupipe-based CMF dataset generation for ucmf"
 readme = "README.md"
-requires-python = ">=3.11,<3.14"
+requires-python = ">=3.13,<3.14"
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
 dependencies = [
@@ -19,12 +19,14 @@ dependencies = [
     "irdl",
     "ray[data]>=2.49,<3",
     "pyarrow",
+    "ucmf",
 ]
 
 [dependency-groups]
 dev = ["pytest", "ruff"]
 
 [tool.uv.sources]
+ucmf = { path = "../ucmf", editable = true }
 acoupipe = { git = "https://github.com/adku1173/acoupipe", branch = "analysis/ray-data" }
 # Same Acoular as ucmf (acoular.solvers interface, not yet released on PyPI).
 acoular = { git = "https://github.com/acoular/acoular.git", branch = "cmf-problem-assembly" }
@@ -36,7 +38,7 @@ packages = ["src/ucmf_data"]
 testpaths = ["tests"]
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py313"
 line-length = 120
 
 [tool.ruff.lint]

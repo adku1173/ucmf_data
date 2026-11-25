@@ -19,7 +19,9 @@ from ucmf_data.wishart import sample_complex_wishart_covariance
 
 import h5py
 import numpy as np
+import torch
 from scipy.spatial import cKDTree
+from ucmf.optim.operator import CMFDictionary
 
 
 def source_strength(parameters, data):
@@ -69,9 +71,7 @@ def sensing_matrix(parameters, data):
     nominal_transfer, in the vectorization convention of y for r_diag.
     Independent of the sampled scene.
     """
-    h = nominal_transfer(parameters)
-    outer = np.einsum('fmn,fkn->fnmk', h, h.conj())  # (F, N, M, M)
-    return np.swapaxes(vectorize_csm(outer, parameters.r_diag), -1, -2)
+    return CMFDictionary(torch.from_numpy(nominal_transfer(parameters)), r_diag=parameters.r_diag).matrix.numpy()
 
 
 def y(parameters, data):
