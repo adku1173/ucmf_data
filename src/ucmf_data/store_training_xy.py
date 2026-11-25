@@ -20,6 +20,9 @@ import os
 # Keep every Ray worker single-threaded (see DistributedPipeline warning).
 for _var in ('NUMBA_NUM_THREADS', 'OMP_NUM_THREADS', 'OPENBLAS_NUM_THREADS', 'MKL_NUM_THREADS'):
     os.environ.setdefault(_var, '1')
+# Ray workers use this interpreter instead of re-running `uv run` in a copied working directory,
+# where the relative path source ../ucmf does not resolve. Ray reads it when first imported.
+os.environ.setdefault('RAY_ENABLE_UV_RUN_RUNTIME_ENV', '0')
 
 from acoupipe.datasets import Dataset
 
