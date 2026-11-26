@@ -1,5 +1,8 @@
 """Loading the single-frequency datasets of store_training_xy."""
 
+import subprocess
+import sys
+
 from ucmf_data import stored
 from ucmf_data.vectorization import kept_rows, vectorize_csm
 
@@ -88,3 +91,9 @@ def test_load_band_weights_rows_by_inverse_he(root):
     he = stored.load_band(root, 0.0, 16.0, 30, 1, 'training')['he']
     np.testing.assert_array_equal(he, stored.load_band(root, 0.0, 16.0, 30, 1, 'training')['he'])
     assert (he == np.float32(2.0078)).sum() > (he == np.float32(4.0746)).sum()
+
+
+def test_stored_does_not_import_acoular():
+    # A fresh interpreter, as the test session has imported Acoular already.
+    code = 'import sys; from ucmf_data import stored; assert "acoular" not in sys.modules'
+    subprocess.run([sys.executable, '-c', code], check=True)
